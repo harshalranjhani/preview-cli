@@ -76,6 +76,8 @@ func newRoot() *cobra.Command {
 		newDoctor(),
 		newGC(),
 		newServer(),
+		newUninstall(),
+		newUpdate(),
 		newVersion(),
 		newCompletion(root),
 	)

@@ -113,7 +113,6 @@ ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfi
 TimeoutStopSec=5s
 LimitNOFILE=1048576
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
@@ -122,6 +121,17 @@ EOF
   run_root chmod 644 /etc/systemd/system/caddy.service
   run_root systemctl daemon-reload
 fi
+
+bind=$(mktemp)
+cat > "$bind" <<'EOF'
+[Service]
+NoNewPrivileges=false
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+EOF
+run_root mkdir -p /etc/systemd/system/caddy.service.d
+run_root mv "$bind" /etc/systemd/system/caddy.service.d/preview-bind.conf
+run_root chmod 644 /etc/systemd/system/caddy.service.d/preview-bind.conf
+run_root systemctl daemon-reload
 
 if run_root systemctl is-active --quiet caddy; then
   run_root systemctl restart caddy

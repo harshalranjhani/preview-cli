@@ -30,7 +30,7 @@ func InstallSystemd(binPath, dnsEnvPath string) (string, error) {
 		}
 	}
 	dropinDir := "/etc/systemd/system/caddy.service.d"
-	dropin := fmt.Sprintf("[Service]\nEnvironmentFile=-%s\n", dnsEnvPath)
+	dropin := fmt.Sprintf("[Service]\nEnvironmentFile=-%s\nNoNewPrivileges=false\nAmbientCapabilities=CAP_NET_BIND_SERVICE\n", dnsEnvPath)
 	if err := WriteAtomic(filepath.Join(dropinDir, "preview-dns.conf"), []byte(dropin), 0o644); err != nil {
 		return "", err
 	}

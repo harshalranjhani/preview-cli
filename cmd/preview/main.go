@@ -7,7 +7,7 @@ import (
 )
 
 // version is overridden by release builds.
-var version = "0.1.0"
+var version = "0.1.1"
 
 func main() {
 	os.Exit(cli.Execute(version))

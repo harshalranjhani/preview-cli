@@ -134,13 +134,48 @@ func (s *Store) lock() (func(), error) {
 
 // Find returns the preview identified by an id or hostname.
 func (f File) Find(ref string) (Preview, bool) {
+	p, err := f.Resolve(ref)
+	if err != nil {
+		return Preview{}, false
+	}
+	return p, true
+}
+
+// Resolve finds one preview by id, hostname, or a unique id prefix.
+// A prefix matches the id (pv_k7p2), the short id (k7p2), or the Caddy route id.
+func (f File) Resolve(ref string) (Preview, error) {
 	ref = normalizeRef(ref)
+	if ref == "" {
+		return Preview{}, fmt.Errorf("no preview found for %q", ref)
+	}
 	for _, p := range f.Previews {
-		if p.ID == ref || p.Hostname == ref || p.CaddyRouteID == ref {
-			return p, true
+		if p.ID == ref || p.Hostname == ref || p.CaddyRouteID == ref || shortID(p.ID) == ref {
+			return p, nil
 		}
 	}
-	return Preview{}, false
+	seen := map[string]Preview{}
+	var order []string
+	for _, p := range f.Previews {
+		if strings.HasPrefix(p.ID, ref) || strings.HasPrefix(shortID(p.ID), ref) || strings.HasPrefix(p.CaddyRouteID, ref) {
+			if _, ok := seen[p.ID]; ok {
+				continue
+			}
+			seen[p.ID] = p
+			order = append(order, p.ID)
+		}
+	}
+	switch len(order) {
+	case 0:
+		return Preview{}, fmt.Errorf("no preview found for %q", ref)
+	case 1:
+		return seen[order[0]], nil
+	default:
+		return Preview{}, fmt.Errorf("id %q matches more than one preview: %s", ref, strings.Join(order, ", "))
+	}
+}
+
+func shortID(id string) string {
+	return strings.TrimPrefix(id, "pv_")
 }
 
 // Put inserts or replaces a preview by id.

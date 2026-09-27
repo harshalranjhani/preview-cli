@@ -120,14 +120,33 @@ func Restart(bin, mainPath, dnsEnvPath, envName string) error {
 		cmd := exec.Command("systemctl", "restart", "caddy")
 		out, err := cmd.CombinedOutput()
 		if err == nil {
+			if exec.Command("systemctl", "is-active", "--quiet", "caddy").Run() != nil {
+				return fmt.Errorf("caddy exited after restart\n%s", CaddyDiagnostics())
+			}
 			return nil
 		}
 		text := strings.ToLower(string(out))
 		if !strings.Contains(text, "not found") && !strings.Contains(text, "could not be found") {
-			return fmt.Errorf("systemctl restart caddy: %w\n%s", err, strings.TrimSpace(string(out)))
+			return fmt.Errorf("systemctl restart caddy: %w\n%s\n%s", err, strings.TrimSpace(string(out)), CaddyDiagnostics())
 		}
 	}
 	return reloadDirect(bin, mainPath, dnsEnvPath, envName)
+}
+
+// CaddyDiagnostics returns recent service logs when Caddy is not accepting connections.
+func CaddyDiagnostics() string {
+	var b strings.Builder
+	if out, err := exec.Command("systemctl", "is-active", "caddy").CombinedOutput(); err == nil || len(out) > 0 {
+		fmt.Fprintf(&b, "service: %s\n", strings.TrimSpace(string(out)))
+	}
+	if _, err := exec.LookPath("journalctl"); err == nil {
+		out, _ := exec.Command("journalctl", "-u", "caddy", "-n", "40", "--no-pager").CombinedOutput()
+		if text := strings.TrimSpace(string(out)); text != "" {
+			b.WriteString(text)
+			b.WriteByte('\n')
+		}
+	}
+	return strings.TrimSpace(b.String())
 }
 
 // Reload applies the Caddyfile to the running server.

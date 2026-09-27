@@ -54,7 +54,7 @@ func (f *fakeCaddy) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		delete(f.routes, id)
 		w.WriteHeader(http.StatusOK)
-	case r.Method == http.MethodPost && strings.Contains(r.URL.Path, "/routes/"):
+	case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/routes/"):
 		body, _ := io.ReadAll(r.Body)
 		var meta struct {
 			ID string `json:"@id"`

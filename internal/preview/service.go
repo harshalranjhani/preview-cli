@@ -250,9 +250,9 @@ func Stop(ctx context.Context, d Deps, in StopInput) (StopResult, error) {
 			}
 		}
 	default:
-		p, ok := file.Find(in.Ref)
-		if !ok {
-			return StopResult{}, clierr.New(exitcode.Generic, "NOT_FOUND", fmt.Sprintf("no preview found for %q", in.Ref))
+		p, err := file.Resolve(in.Ref)
+		if err != nil {
+			return StopResult{}, clierr.New(exitcode.Generic, "NOT_FOUND", err.Error())
 		}
 		if !canManage(p, in.UID) {
 			return StopResult{}, clierr.New(exitcode.Usage, "FORBIDDEN", fmt.Sprintf("preview %s is owned by uid %d", p.ID, p.CreatedByUID))
@@ -344,9 +344,9 @@ func Inspect(ctx context.Context, d Deps, ref string) (Status, error) {
 	if err != nil {
 		return Status{}, err
 	}
-	p, ok := file.Find(ref)
-	if !ok {
-		return Status{}, clierr.New(exitcode.Generic, "NOT_FOUND", fmt.Sprintf("no preview found for %q", ref))
+	p, err := file.Resolve(ref)
+	if err != nil {
+		return Status{}, clierr.New(exitcode.Generic, "NOT_FOUND", err.Error())
 	}
 	st := Status{
 		Preview:   p,

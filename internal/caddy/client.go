@@ -152,8 +152,10 @@ func (c *Client) UpsertRoute(ctx context.Context, server string, route Route) er
 	if err != nil {
 		return err
 	}
+	// PUT inserts at index 0. POST appends, and the wildcard site is terminal,
+	// so an appended route would never run for these hostnames.
 	path := "/config/apps/http/servers/" + url.PathEscape(server) + "/routes/0"
-	resp, body, err := c.do(ctx, http.MethodPost, path, payload)
+	resp, body, err := c.do(ctx, http.MethodPut, path, payload)
 	if err != nil {
 		return fmt.Errorf("install caddy route: %w", err)
 	}

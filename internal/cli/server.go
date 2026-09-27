@@ -123,13 +123,13 @@ func runServerInit(cmd *cobra.Command, opts serverInitOpts) error {
 	step(true, "State directory "+filepath.Dir(cfg.State.Path))
 
 	if err := server.Restart(cfg.Caddy.Bin, cfg.Caddy.MainConfigPath, dnsPath, cfg.DNS.CredentialsEnv); err != nil {
-		return clierr.New(4, "CADDY_UNAVAILABLE", err.Error())
+		return caddyUnavailable(err)
 	}
 	step(true, "Caddy restarted")
 
 	rt := runtimeFrom(path, cfg)
 	if err := rt.deps.Caddy.WaitUntilReady(cmd.Context()); err != nil {
-		return clierr.New(4, "CADDY_UNAVAILABLE", err.Error())
+		return caddyUnavailable(err)
 	}
 	if n, err := preview.Sync(cmd.Context(), rt.deps); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: could not restore existing routes: %v\n", err)
@@ -265,7 +265,7 @@ func newServerApply() *cobra.Command {
 				return clierr.New(4, "CADDY_UNAVAILABLE", err.Error())
 			}
 			if err := rt.deps.Caddy.WaitUntilReady(cmd.Context()); err != nil {
-				return clierr.New(4, "CADDY_UNAVAILABLE", err.Error())
+				return caddyUnavailable(err)
 			}
 			n, err := preview.Sync(cmd.Context(), rt.deps)
 			if err != nil {
@@ -387,4 +387,12 @@ func runtimeFrom(path string, cfg config.Config) runtime {
 
 func runDoctor(cmd *cobra.Command, rt runtime) doctor.Report {
 	return doctor.Run(cmd.Context(), rt.cfg, rt.path)
+}
+
+func caddyUnavailable(err error) error {
+	msg := err.Error()
+	if extra := server.CaddyDiagnostics(); extra != "" {
+		msg += "\n\n" + extra
+	}
+	return clierr.New(4, "CADDY_UNAVAILABLE", msg)
 }

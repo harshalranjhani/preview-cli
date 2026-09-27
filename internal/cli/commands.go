@@ -133,6 +133,7 @@ func newStop() *cobra.Command {
 		Short: "Remove a preview route without stopping the application",
 		Args:  cobra.MaximumNArgs(1),
 		Example: `  preview stop pv_k7p2
+  preview stop k7p
   preview stop --project
   preview stop --all`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -234,7 +235,9 @@ func newStatus() *cobra.Command {
 	return &cobra.Command{
 		Use:   "status <id|hostname>",
 		Short: "Show one preview and check that it still routes",
-		Args:  cobra.ExactArgs(1),
+		Example: `  preview status pv_k7p2
+  preview status k7p`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rt, err := loadRuntime(cmd)
 			if err != nil {

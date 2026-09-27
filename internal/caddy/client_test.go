@@ -65,7 +65,7 @@ func (f *fakeCaddy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodGet && r.URL.Path == "/config/":
 		_ = json.NewEncoder(w).Encode(f.snapshot())
-	case r.Method == http.MethodPost && strings.Contains(r.URL.Path, "/routes/0"):
+	case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/routes/0"):
 		body, _ := io.ReadAll(r.Body)
 		var probe struct {
 			ID string `json:"@id"`

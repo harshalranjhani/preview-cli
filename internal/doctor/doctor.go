@@ -67,7 +67,11 @@ func Run(ctx context.Context, cfg config.Config, configPath string) Report {
 
 	client := caddy.New(cfg.Caddy.AdminURL)
 	if err := client.Ping(ctx); err != nil {
-		add("error", "caddy admin", err.Error())
+		detail := err.Error()
+		if extra := server.CaddyDiagnostics(); extra != "" {
+			detail += "\n" + extra
+		}
+		add("error", "caddy admin", detail)
 	} else {
 		add("ok", "caddy admin", cfg.Caddy.AdminURL)
 		ok, err := client.HasDomain(ctx, cfg.Server.BaseDomain)

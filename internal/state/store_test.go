@@ -3,6 +3,7 @@ package state
 import (
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -54,6 +55,28 @@ func TestFindAndRemove(t *testing.T) {
 	}
 	if !file.Remove("pv_k7p2") || len(file.Previews) != 0 {
 		t.Fatal("remove failed")
+	}
+}
+
+func TestResolvePrefix(t *testing.T) {
+	file := File{}
+	file.Put(Preview{ID: "pv_k7p2", Hostname: "app--fix--k7p2.preview.example.com", CaddyRouteID: "preview-pv-k7p2"})
+	file.Put(Preview{ID: "pv_k7aa", Hostname: "app--fix--k7aa.preview.example.com", CaddyRouteID: "preview-pv-k7aa"})
+	file.Put(Preview{ID: "pv_8svq", Hostname: "root--hello--8svq.preview.example.com", CaddyRouteID: "preview-pv-8svq"})
+
+	got, err := file.Resolve("k7p")
+	if err != nil || got.ID != "pv_k7p2" {
+		t.Fatalf("%s %v", got.ID, err)
+	}
+	got, err = file.Resolve("8svq")
+	if err != nil || got.ID != "pv_8svq" {
+		t.Fatalf("%s %v", got.ID, err)
+	}
+	if _, err := file.Resolve("k7"); err == nil || !strings.Contains(err.Error(), "pv_k7p2") || !strings.Contains(err.Error(), "pv_k7aa") {
+		t.Fatalf("%v", err)
+	}
+	if _, err := file.Resolve("missing"); err == nil {
+		t.Fatal("expected a miss")
 	}
 }
 

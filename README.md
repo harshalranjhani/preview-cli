@@ -44,13 +44,13 @@ project: dashboard
 
 ## One-time server setup
 
-1. Install [Caddy](https://caddyserver.com/docs/install) built with your DNS provider. For Cloudflare:
+1. On the server, install `preview` and a Caddy build that includes the Cloudflare DNS module:
 
    ```bash
-   xcaddy build --with github.com/caddy-dns/cloudflare
+   curl -fsSL https://raw.githubusercontent.com/harshalranjhani/preview-cli/refs/heads/main/scripts/install.sh | sh
    ```
 
-   A custom build from [caddyserver.com/download](https://caddyserver.com/download) works too. The stock package does not include the Cloudflare DNS module, which wildcard certificates need.
+   The stock Caddy package cannot issue wildcard certificates. The script downloads a build from Caddy's site with `github.com/caddy-dns/cloudflare` included. To build that binary yourself instead: `xcaddy build --with github.com/caddy-dns/cloudflare`.
 
 2. Create a **DNS-only** record at your DNS host. On Cloudflare, leave the cloud grey so Cloudflare does not proxy the hostname. Caddy terminates HTTPS.
 
@@ -161,7 +161,7 @@ go build -o preview ./cmd/preview
 go test ./...
 ```
 
-Release binaries for Linux amd64 and arm64 are published with GoReleaser. `scripts/install.sh` downloads the latest Linux binary to `/usr/local/bin/preview`.
+Release binaries for Linux amd64 and arm64 are published with GoReleaser. `scripts/install.sh` installs the latest Linux `preview` binary and a Caddy build with the Cloudflare DNS module.
 
 ## Troubleshooting
 

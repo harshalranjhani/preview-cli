@@ -1,0 +1,5 @@
+# Save as .preview.yaml in the repository. Safe to commit.
+# Do not put DNS tokens or server addresses here.
+
+project: dashboard
+default_ttl: 1h

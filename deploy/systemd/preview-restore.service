@@ -1,0 +1,12 @@
+[Unit]
+Description=Restore preview routes into Caddy
+After=caddy.service
+Wants=caddy.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/preview server sync
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

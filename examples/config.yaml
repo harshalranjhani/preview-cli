@@ -1,0 +1,42 @@
+# Copy to /etc/preview/config.yaml, or generate it with:
+#   sudo preview server init
+#
+# Then apply it:
+#   sudo preview server apply
+
+server:
+  # Apex under the wildcard. Create a DNS-only A record for *.preview.example.com.
+  base_domain: preview.example.com
+  hostname_template: "{{project}}--{{name}}--{{id}}.{{base_domain}}"
+  public_ip: 203.0.113.10
+  public_ipv6: ""
+  acme_email: you@example.com
+
+dns:
+  provider: cloudflare
+  # The token itself goes in /etc/preview/dns.env, not here.
+  credentials_env: CLOUDFLARE_API_TOKEN
+
+caddy:
+  admin_url: http://127.0.0.1:2019
+  managed_config_path: /etc/caddy/preview.caddy
+  main_config_path: /etc/caddy/Caddyfile
+  server_name: ""
+  bin: caddy
+
+routing:
+  target_host: 127.0.0.1
+  allowed_port_min: 1024
+  allowed_port_max: 65535
+
+preview:
+  default_ttl: 2h
+  health_timeout: 15s
+  verify_public_url: true
+  stale_after: 10m
+
+state:
+  path: /var/lib/preview/state.json
+
+security:
+  allow_non_loopback_targets: false
